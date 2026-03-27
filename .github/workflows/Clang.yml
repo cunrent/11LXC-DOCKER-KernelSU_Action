@@ -1,0 +1,58 @@
+name: Download Clang and Create Release
+
+on:
+  workflow_dispatch:            # 手动触发
+  push:
+    tags:                       # 当推送标签时自动触发，例如 v1.0.0
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write            # 允许创建 Release 并上传资产
+
+    steps:
+      - name: Checkout own repository (optional)
+        uses: actions/checkout@v4
+
+      - name: Download Clang from GitLab
+        run: |
+          # 使用 git clone 完整下载（包含历史记录）
+          git clone https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r536225.git
+          # 如果只想获取最新快照，也可以使用 curl 下载 zip，但这里使用 clone 更可靠
+          # 若仓库较大且需要精简，可添加 --depth 1
+          # git clone --depth 1 https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r536225.git
+
+      - name: Create compressed archive
+        run: |
+          # 将下载的目录打包为 tar.gz 文件
+          tar -czf clang-prebuilt.tar.gz android_prebuilts_clang_host_linux-x86_clang-r536225/
+          # 如果需要 zip 格式，可使用：zip -r clang-prebuilt.zip android_prebuilts_clang_host_linux-x86_clang-r536225/
+
+      - name: Generate Release Name and Tag
+        id: vars
+        run: |
+          # 如果没有推送标签（手动触发），则生成一个基于时间的标签
+          if [ -z "${{ github.ref_name }}" ] || [[ "${{ github.ref_type }}" != "tag" ]]; then
+            TAG_NAME="release-$(date +'%Y%m%d-%H%M%S')"
+            echo "TAG_NAME=${TAG_NAME}" >> $GITHUB_ENV
+          else
+            echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG_NAME }}
+          name: Clang r536225 Prebuilt ${{ env.TAG_NAME }}
+          body: |
+            This release contains the Clang prebuilt from:
+            https://gitlab.com/crdroidandroid/android_prebuilts_clang_host_linux-x86_clang-r536225
+            
+            Downloaded and packaged on ${{ github.run_id }}.
+          files: clang-prebuilt.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
