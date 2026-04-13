@@ -86,6 +86,11 @@ jobs:
         key: build-kernel-mido-kernel
         max-size: 2G
 
+    - name: Symlink python3 to python2
+      run: |
+        sudo ln -sf /usr/bin/python3 /usr/bin/python2
+        sudo ln -sf /usr/bin/python3 /usr/bin/python
+
     - name: 开始编译内核
       run: |
         cd $GITHUB_WORKSPACE/kernel_workspace/android-kernel
