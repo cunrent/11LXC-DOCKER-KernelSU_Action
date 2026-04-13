@@ -33,32 +33,15 @@ jobs:
         sudo -E apt-get -y -qq install build-essential gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-arm-linux-gnueabihf
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
-    - name: Build and install Python 2.7 from source
+    - name: Install Python 2.7 from Ubuntu 22.04 repo
       run: |
-        # 安装编译依赖
+        echo "deb http://archive.ubuntu.com/ubuntu jammy main universe" | sudo tee /etc/apt/sources.list.d/jammy.list
         sudo apt update
-        sudo apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev \
-        libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev \
-        xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev
-
-        # 下载 Python 2.7.18 源码
-        wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
-        tar xzf Python-2.7.18.tgz
-        cd Python-2.7.18
-
-        # 配置、编译、安装
-        ./configure --enable-optimizations --enable-unicode=ucs4 --prefix=/usr/local
-        make -j$(nproc)
-        sudo make altinstall
-
-        # 创建软链接，让 python2 和 python 指向 python2.7
-        sudo ln -sf /usr/local/bin/python2.7 /usr/local/bin/python2
-        sudo ln -sf /usr/local/bin/python2.7 /usr/local/bin/python
-
-        # 验证安装
-        python2 --version
-        python --version
-        working-directory: /tmp
+        sudo apt install -y --no-install-recommends python2.7-minimal python2.7
+        sudo ln -sf /usr/bin/python2.7 /usr/bin/python2
+        sudo ln -sf /usr/bin/python2.7 /usr/bin/python
+        sudo rm /etc/apt/sources.list.d/jammy.list
+        sudo apt update
   
     - name: 下载Clang-aosp编译器
       run: |
