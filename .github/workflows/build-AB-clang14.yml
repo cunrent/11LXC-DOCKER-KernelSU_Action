@@ -33,7 +33,7 @@ jobs:
         sudo -E apt-get -y -qq install build-essential gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi gcc-arm-linux-gnueabihf
         mkdir -p $GITHUB_WORKSPACE/kernel_workspace
 
-     - name: Install Python 2.7 (required for kernel build)
+    - name: Install Python 2.7 (required for kernel build)
       run: |
         sudo add-apt-repository -y ppa:deadsnakes/ppa
         sudo apt update
