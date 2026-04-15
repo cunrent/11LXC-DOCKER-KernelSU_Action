@@ -107,6 +107,25 @@ jobs:
         else
           make -j$(nproc --all) CC="ccache clang" CXX=clang++ O=out ARCH=arm64 CLANG_TRIPLE="aarch64-linux-gnu-" CROSS_COMPILE="aarch64-linux-gnu-" CROSS_COMPILE_ARM32="arm-linux-gnueabi-"
         fi
+
+         # ========== 手动生成 Image.gz-dtb ==========
+        # 查找设备树文件（优先匹配设备代号 thyme 或 kona）
+        DTB=$(find out/arch/arm64/boot/dts -name "*.dtb" 2>/dev/null | grep -E "thyme|kona" | head -1)
+        if [ -z "$DTB" ]; then
+        DTB=$(find out/arch/arm64/boot/dts -name "*.dtb" 2>/dev/null | head -1)
+        fi
+    
+        if [ -f "$DTB" ]; then
+           echo "Using dtb: $DTB"
+           cat out/arch/arm64/boot/Image "$DTB" > out/arch/arm64/boot/Image-dtb
+          gzip -c out/arch/arm64/boot/Image-dtb > out/arch/arm64/boot/Image.gz-dtb
+           ls -lh out/arch/arm64/boot/Image.gz-dtb
+           else
+        echo "ERROR: No dtb file found, cannot create Image.gz-dtb"
+        exit 1
+        fi
+        # =========================================
+        
                 
     - name: 准备打包内核
       run: |       
